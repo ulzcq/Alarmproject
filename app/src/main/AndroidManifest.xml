@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.yu.alarmproject">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".SchedAlarmActivity"></activity>
+
+        <service
+            android:name=".SchedAlarmService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity android:name=".GoOutAlarmActivity" />
+
+        <service
+            android:name=".GoOutAlarmService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity android:name=".ReadyAlarmActivity" />
+
+        <service
+            android:name=".ReadyAlarmService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".SubmitActivity" />
+
+        <service
+            android:name=".ReadyAlarmService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <receiver android:name=".ReadyAlarmReceiver">
+            <intent-filter>
+                <action android:name="com.yu.alarmproject.READY_ALARM_ALERT" />
+                <action android:name="alarm_killed" />
+                <action android:name="cancel_snooze" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".GoOutAlarmReceiver">
+            <intent-filter>
+                <action android:name="com.yu.alarmproject.GOOUT_ALARM_ALERT" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".SchedAlarmReceiver">
+            <intent-filter>
+                <action android:name="com.yu.alarmproject.SCHED_ALARM_ALERT" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
