@@ -18,6 +18,8 @@ public class Constants {
     public static final int ONLY_GOOUT_CONTENT = 2;
     public static final int ONLY_SCHED_CONTENT = 3;
 
-    public static SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd a HH:mm");
+    public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd a HH:mm");
+    public static SimpleDateFormat timeFormat = new SimpleDateFormat("a HH:mm");
+    public static SimpleDateFormat calTitleFormat = new SimpleDateFormat("yyyy년 MM월");
 
 }

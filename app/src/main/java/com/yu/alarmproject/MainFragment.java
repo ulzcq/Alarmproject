@@ -16,7 +16,7 @@ import android.widget.TextView;
 import java.text.SimpleDateFormat;
 
 
-public class TodayFragment extends Fragment {
+public class MainFragment extends Fragment {
     private TextView beforeSched;
     private CheckBox checkBox;
     private Lateness item;
@@ -46,7 +46,7 @@ public class TodayFragment extends Fragment {
 
         //없으면 없다고 출력
     }
-    private void modifyLateness(){
+    private void modifyLateness(int id){
         //lateness db 수정
     }
 }

@@ -2,29 +2,28 @@ package com.yu.alarmproject;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
-    TodayAlarm fragment1;
-    ShowAlarmList fragment2;
-    ShowStatistics fragment3;
+    private MainFragment fragment1;
+    private AlarmListFragment fragment2;
+    private StatisticsFragment fragment3;
+
+    public static Database database = null; //데이터베이스 인스턴스
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        fragment1 = new TodayAlarm();
-        fragment2 = new ShowAlarmList();
-        fragment3 = new ShowStatistics();
+        fragment1 = new MainFragment();
+        fragment2 = new AlarmListFragment();
+        fragment3 = new StatisticsFragment();
 
         getSupportFragmentManager().beginTransaction().replace(R.id.container,fragment1).commit();
 
@@ -49,5 +48,25 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+        openDatabse();
+    }
+
+    public void openDatabse(){
+        if(database != null){
+            database.close();
+            database=null;
+        }
+
+        database = Database.getInstance(this);
+        database.open();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(database !=null){
+            database.close();
+            database =null;
+        }
     }
 }

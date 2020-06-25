@@ -3,18 +3,16 @@ package com.yu.alarmproject;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.PowerManager;
-import android.view.Window;
-import android.widget.Toast;
 
-public class GoOutAlarmReceiver extends BroadcastReceiver {
+public class AlarmReceiver extends BroadcastReceiver {
+    public static final String READY_ALARM_ALERT_ACTION = "com.yu.alarmproject.READY_ALARM_ALERT";
     public static final String GOOUT_ALARM_ALERT_ACTION = "com.yu.alarmproject.GOOUT_ALARM_ALERT";
+    public static final String SCHED_ALARM_ALERT_ACTION = "com.yu.alarmproject.SCHED_ALARM_ALERT";
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if(intent.getAction().equals(GOOUT_ALARM_ALERT_ACTION)) {
-            Intent service_intent = new Intent(context, GoOutAlarmService.class);
-            context.startService(service_intent);
-        }
+        Intent Alarmintent = new Intent(context, AlarmAlertActivity.class);
+        Alarmintent.setAction(intent.getAction());
+        context.startActivity(Alarmintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
     }
 }

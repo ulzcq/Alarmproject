@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 
-public class AlarmAertActivity extends AppCompatActivity {
+public class AlarmAlertActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +21,12 @@ public class AlarmAertActivity extends AppCompatActivity {
 
         String action = getIntent().getAction();
 
+        //TODO: 데이터받아와서 enabeld 보고 알람 울릴건지 결정
         //알람 종류에 따라 레이아웃 다르게 띄우기
+
+        if(isEnabled(getIntent().get)) //id 값전달
+            //알람 on이라면
+
         if(action.equals(AlarmReceiver.READY_ALARM_ALERT_ACTION)){
             setContentView(R.layout.activity_ready_alarm);
         }
@@ -44,8 +49,19 @@ public class AlarmAertActivity extends AppCompatActivity {
         button.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //TODO:알람 enabled -> db 수정하고 알람도 cancel시키기
                 finish();
             }
         });
+    }
+
+    public boolean isEnabled(int id){
+        //데이터베이스 조회
+
+    }
+
+    public void snnozeAlarm(int id){
+        //알람 off
+        //db enabled 값 0으로 set
     }
 }

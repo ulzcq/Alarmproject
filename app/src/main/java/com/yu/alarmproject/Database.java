@@ -103,15 +103,17 @@ public class Database {
 
                     +" VIEWTYPE INTEGER NOT NULL, "
 
-                    +" READYTIME INTEGER, "
-                    +" MOVETIME INTEGER"
+                    +" READY_H INEGER, "
+                    +" READY_M INEGER, "
+                    +" MOVE_H INEGER, "
+                    +" MOVE_M INEGER "
                     + ")";
 
             String CREATE_SQL2 = "create table "+TABLE_LATENESS + "("
                     +" _id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
                     +" LABLE TEXT DEFAULT '일정', "
-                    +" SCHEDTIME TEXT NOT NULL, "
-                    +" LATENESS INT DEFAULT 0" //지각안한게 default
+                    +" SCHEDTIME TEXT NOT NULL, " //일정 calendar -> 요일포함돼있음
+                    +" LATENESS INT DEFAULT 0 " //지각안한게 default
                     + ")";
 
             try{
@@ -131,6 +133,6 @@ public class Database {
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.d(TAG,"Upgrading database from version " + oldVersion + " to " + newVersion +".");
-        }
+        }//필수라서 어쩔수없..
     }
 }

@@ -15,16 +15,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Switch;
 
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-public class ShowAlarmList extends Fragment {
+public class AlarmListFragment extends Fragment {
     private RecyclerView recyclerView;
     private AlarmAdapter adapter;
-    AlarmManager alarmManager;
+    private AlarmManager alarmManager; //TODO:개별알람 on/off
     private Context context;
     private ArrayList<SchedAlarm> items;
     //listener; TODO: 한 아이템 클릭하면 수정 -> AddAlarmActiity로 이동
@@ -53,7 +54,9 @@ public class ShowAlarmList extends Fragment {
         ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_show_alarm_list, container, false);
         initUI(rootView);
 
-        loadAlarmList();
+        loadAlarmList(); //db에서 리스트가져오기, dapater 초기화
+
+        alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
 
         adapter.setOnItemClickListener(new AlarmAdapter.OnItemClickListener() {
             @Override
@@ -71,6 +74,8 @@ public class ShowAlarmList extends Fragment {
                 //삭제하시겠습니까 팝업창
                 //알람 취소 및 삭제
                 deleteAlarmData(adapter.getItem(position));
+                loadAlarmList();
+                recyclerView.setAdapter(adapter);
             }
         });
 
@@ -87,7 +92,7 @@ public class ShowAlarmList extends Fragment {
     }
 
 
-    public void deleteAlarmData(SchedAlarm item){
+    private void deleteAlarmData(SchedAlarm item){
 
         //db에서 알람데이터 삭제
         String sql="";
@@ -136,7 +141,7 @@ public class ShowAlarmList extends Fragment {
         return PendingIntent.getBroadcast(context, _id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    public int loadAlarmList(){
+    private int loadAlarmList(){
 
         String sql = "select _id, LABEL, SCHEDTIME, READY_ALARMTIME, GOOUT_ALARMTIME, SCHED_ALARMTIME,"
                 + " REDAY_ENABLED, GOOUT_ENABLED, SCHED_ENABLED, VIEWTYPE,"
@@ -182,13 +187,6 @@ public class ShowAlarmList extends Fragment {
                 int move_h = outCursor.getInt(11);
                 int move_m = outCursor.getInt(12);
 
-//                if(label != null && label.length() >10){
-//                    try{
-//                        //TODO:글자수 10 이상이면 어떠케처리..? 이부분 해 말어?
-//                    }catch(Exception e){
-//                        e.printStackTrace();
-//                    }
-//                }
                 switch(viewType){
                     case Constants.INTEGRATED_CONTENT:
                         items.add(new SchedAlarm(_id,label,schedTime,readyAlarmTime,goOutAlarmTime,readyEnabled,goOutEnabled,viewType,ready_h,ready_m,move_h,move_m));
@@ -203,6 +201,8 @@ public class ShowAlarmList extends Fragment {
                         items.add(new SchedAlarm(_id,label,schedTime,schedEnabled,viewType));
                         break;
                 }
+
+                //TODO: items에 추가해서 adpater에 set
 
                 outCursor.close();
 
@@ -244,7 +244,7 @@ public class ShowAlarmList extends Fragment {
         items.add(new SchedAlarm(4,"준비x출발x",test,true,Constants.ONLY_SCHED_CONTENT));//샘플
 
         adapter = new AlarmAdapter(items);
-        recyclerView.setAdapter(adapter); //adapter 등록
+        recyclerView.setAdapter(adapter); //리싸이클러뷰에 adapter 등록
     }
 
 }

@@ -16,21 +16,11 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.tabs.TabLayout;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class SubmitActivity extends AppCompatActivity {
 
-    //public static final String READY_ALARM_ALERT_ACTION = "com.yu.alarmproject.READY_ALARM_ALERT";
-    //public static final String GOOUT_ALARM_ALERT_ACTION = "com.yu.alarmproject.GOOUT_ALARM_ALERT";
-
-    private Context context;
     private AlarmManager alarmManager;
 
     private int mode = Constants.MODE_INSERT; //알람 새로 생성하는지 수정하는지 구분자 값
@@ -52,7 +42,7 @@ public class SubmitActivity extends AppCompatActivity {
     private int readyTime[];
     private int goOutTime[]; //계산한 알람시각 결과
 
-    SchedAlarm item; //수정시 보여줄 데이터
+    private SchedAlarm item; //수정시 보여줄 데이터
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +69,10 @@ public class SubmitActivity extends AppCompatActivity {
         move_hPicker = findViewById(R.id.move_hPicker);
         move_mPicker = findViewById(R.id.move_mPicker);
 
-        applyItem();
+        Intent intent = getIntent(); //AlarmList에서 전달받은 intent 참조
+        setItem((SchedAlarm)intent.getSerializableExtra("SchedAlarm"));
+
+        applyItem(); //수정 이라면 뷰 설정
 
         Button cancelButton = findViewById(R.id.cancelButton);
         cancelButton.setOnClickListener(new Button.OnClickListener() {
@@ -90,12 +83,12 @@ public class SubmitActivity extends AppCompatActivity {
             }
         });
 
-        Button saveButton = (Button)findViewById(R.id.saveButton);
+        Button saveButton = (Button)findViewById(R.id.saveButton); //저장버튼 클릭 시
         saveButton.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(mode == Constants.MODE_INSERT){
-                    addAlarm(); //알람 추가
+                    addAlarmData(); //알람 추가
                     finish();
                 }else if(mode == Constants.MODE_MODIFY){
                     modifyAlarm(); //알람 수정
@@ -105,36 +98,36 @@ public class SubmitActivity extends AppCompatActivity {
         });
     }
 
+    public void setItem(SchedAlarm item){
+        this.item = item;
+    }
+
     private void applyItem(){
-        if(item != null){
-            mode = Constants.MODE_MODIFY;
+        if(item != null){ //item이 있다면
+            mode = Constants.MODE_MODIFY; //수정모드로 설정
             //item 데이터로 뷰들 값 설정하기
 
-            String schedTime = item.getSchedTime();//"2018-09-06 오전 11:11";
-
-            try {
-                Date date = Constants.DateFormat.parse(schedTime); //String -> Date
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(date); //Date -> Calendar
+            Calendar schedTime = item.getSchedTime(); //schedTimePciker 로드
+                try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    schedTimePicker.setHour(cal.HOUR_OF_DAY);
-                    schedTimePicker.setMinute(cal.MINUTE);
+                    schedTimePicker.setHour(schedTime.HOUR_OF_DAY);
+                    schedTimePicker.setMinute(schedTime.MINUTE);
                 } else {
-                    schedTimePicker.setCurrentHour(cal.HOUR_OF_DAY);
-                    schedTimePicker.setCurrentMinute(cal.MINUTE);
+                    schedTimePicker.setCurrentHour(schedTime.HOUR_OF_DAY);
+                    schedTimePicker.setCurrentMinute(schedTime.MINUTE);
                 }
-            } catch (ParseException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            ready_hPicker.setValue(item.getReady_h());
+            ready_hPicker.setValue(item.getReady_h()); // ready Picker 로드
             ready_mPicker.setValue(item.getReady_m());
 
-            move_hPicker.setValue(item.getMove_h());
+            move_hPicker.setValue(item.getMove_h()); // move Picker 로드
             move_mPicker.setValue(item.getMove_m());
 
         } else{
-            mode = Constants.MODE_INSERT;
+            mode = Constants.MODE_INSERT; //추가모드로 설정
         }
     }
 
@@ -167,39 +160,36 @@ public class SubmitActivity extends AppCompatActivity {
         goOutTime = getAlarmTime(schedTime_h,schedTime_m,move_h,move_m);
         readyTime = getAlarmTime(goOutTime[0],goOutTime[1],ready_h,ready_m); //알람시각계산
 
-        Intent intent;
+        Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
         Calendar calendar;
 
         switch(viewType){
             case Constants.INTEGRATED_CONTENT:
-                intent = new Intent(getApplicationContext(), ReadyAlarmReceiver.class);
-                intent.setAction(ReadyAlarmReceiver.READY_ALARM_ALERT_ACTION);
+                intent.setAction(AlarmReceiver.READY_ALARM_ALERT_ACTION);
                 calendar = getCalendar(readyTime[0],readyTime[1]); //날짜설정
                 alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), getPendingIntent(intent,_id));//준비시작 알람 생성
 
-                intent = new Intent(getApplicationContext(), GoOutAlarmReceiver.class);
-                intent.setAction(GoOutAlarmReceiver.GOOUT_ALARM_ALERT_ACTION);
+                intent.setAction(AlarmReceiver.GOOUT_ALARM_ALERT_ACTION);
                 calendar = getCalendar(goOutTime[0],goOutTime[1]);
                 alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), getPendingIntent(intent,_id));//출발 알람 생성
                 break;
             case Constants.ONLY_READY_CONTENT:
-                intent = new Intent(getApplicationContext(), ReadyAlarmReceiver.class);
-                intent.setAction(ReadyAlarmReceiver.READY_ALARM_ALERT_ACTION);
+                intent.setAction(AlarmReceiver.READY_ALARM_ALERT_ACTION);
                 calendar = getCalendar(readyTime[0],readyTime[1]);
                 alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), getPendingIntent(intent,_id));//준비시작 알람 생성
                 break;
             case Constants.ONLY_GOOUT_CONTENT:
-                intent = new Intent(getApplicationContext(), GoOutAlarmReceiver.class);
-                intent.setAction(GoOutAlarmReceiver.GOOUT_ALARM_ALERT_ACTION);
+                intent.setAction(AlarmReceiver.GOOUT_ALARM_ALERT_ACTION);
                 calendar = getCalendar(goOutTime[0],goOutTime[1]);
                 alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), getPendingIntent(intent,_id));//출발 알람 생성
                 break;
             case Constants.ONLY_SCHED_CONTENT:
-                intent = new Intent(getApplicationContext(), SchedAlarmReceiver.class);
-                intent.setAction(SchedAlarmReceiver.SCHED_ALARM_ALERT_ACTION);
+                intent.setAction(AlarmReceiver.SCHED_ALARM_ALERT_ACTION);
                 calendar = getCalendar(schedTime_h,schedTime_m);
                 alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), getPendingIntent(intent,_id));//일정 알람생성
                 break;
+            default:
+                Log.d("SubmitActivity","setAlarm() viewType error");
         }
 
         //4가지 상황에 따라 view분리해서 생성
@@ -209,82 +199,58 @@ public class SubmitActivity extends AppCompatActivity {
         return PendingIntent.getBroadcast(this, _id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private void addAlarm(){
+    private void addAlarmData(){
         int _id;
         int viewType = getViewType();
 
-        String schedTime = Constants.DateFormat.format(getCalendar(schedTime_h,schedTime_m).getTimeInMillis());
-        String readyAlarmTime = Constants.DateFormat.format(getCalendar(readyTime[0],readyTime[1]).getTimeInMillis());
-        String goOutAlarmTime = Constants.DateFormat.format(getCalendar(goOutTime[0],goOutTime[1]).getTimeInMillis());
+        String schedTime = Constants.dateFormat.format(getCalendar(schedTime_h,schedTime_m).getTimeInMillis());
+        String readyAlarmTime = Constants.dateFormat.format(getCalendar(readyTime[0],readyTime[1]).getTimeInMillis());
+        String goOutAlarmTime = Constants.dateFormat.format(getCalendar(goOutTime[0],goOutTime[1]).getTimeInMillis());
 
         String sql="";
-        switch(viewType){ //db에 추가
-            case Constants.INTEGRATED_CONTENT:
-                sql = "insert into " + Database.TABLE_ALARM +
-                        "(LABEL, SCHEDTIME, R_ALARMTIME, G_ALARMTIME, R_ENABLED, G_ENABLED, VIEWTYPE, READY_H, READY_M, MOVE_H, MOVE_M) values(" +
-                        "'"+ schedLabel.getText() +"',"+
-                        "'"+ schedTime +"',"+
-                        "'"+ readyAlarmTime +"',"+
-                        "'"+ goOutAlarmTime +"',"+
-                        "'"+ 1 +"',"+
-                        "'"+ 1 +"',"+
-                        "'"+ viewType +"',"+
-                        "'"+ ready_h +"',"+
-                        "'"+ ready_m +"',"+
-                        "'"+ move_h +"',"+
-                        "'"+ move_m +"',"+
-                        ")";
-                break;
-            case Constants.ONLY_READY_CONTENT:
-                sql = "insert into " + Database.TABLE_ALARM +
-                        "(LABEL, SCHEDTIME, READY_ALARMTIME, READY_ENABLED, VIEWTYPE, READY_H, READY_M, MOVE_H, MOVE_M) values(" +
-                        "'"+ schedLabel.getText() +"',"+
-                        "'"+ schedTime +"',"+
-                        "'"+ readyAlarmTime +"',"+
-                        "'"+ 1 +"',"+
-                        "'"+ viewType +"',"+
-                        "'"+ ready_h +"',"+
-                        "'"+ ready_m +"',"+
-                        "'"+ move_h +"',"+
-                        "'"+ move_m +"',"+
-                        ")";
-                break;
-            case Constants.ONLY_GOOUT_CONTENT:
-                sql = "insert into " + Database.TABLE_ALARM +
-                        "(LABEL, SCHEDTIME, GOOUT_ALARMTIME, GOOUT_ENABLED, VIEWTYPE, READY_H, READY_M, MOVE_H, MOVE_M) values(" +
-                        "'"+ schedLabel.getText() +"',"+
-                        "'"+ schedTime +"',"+
-                        "'"+ goOutAlarmTime +"',"+
-                        "'"+ 1 +"',"+
-                        "'"+ viewType +"',"+
-                        "'"+ ready_h +"',"+
-                        "'"+ ready_m +"',"+
-                        "'"+ move_h +"',"+
-                        "'"+ move_m +"',"+
-                        ")";
-                break;
-            case Constants.ONLY_SCHED_CONTENT:
-                sql = "insert into " + Database.TABLE_ALARM +
-                        "(LABEL, SCHEDTIME, SCHED_ENABLED, VIEWTYPE, READY_H, READY_M, MOVE_H, MOVE_M) values(" +
-                        "'"+ schedLabel.getText() +"',"+
-                        "'"+ schedTime +"',"+
-                        "'"+ 1 +"',"+
-                        "'"+ viewType +"',"+
-                        "'"+ ready_h +"',"+
-                        "'"+ ready_m +"',"+
-                        "'"+ move_h +"',"+
-                        "'"+ move_m +"',"+
-                        ")";
-                break;
-            default:
-                Log.d("SubmitActivity","viewType error.");
-                break;
+        int enabled[] = {0, 0, 0};
+        if(item!=null){
+            switch(viewType){
+                case Constants.INTEGRATED_CONTENT:
+                    enabled[0]=1; enabled[1]=1; enabled[2]=0;
+                    break;
+                case Constants.ONLY_READY_CONTENT:
+                    enabled[0]=1; enabled[1]=0; enabled[2]=0;
+                    break;
+                case Constants.ONLY_GOOUT_CONTENT:
+                    enabled[0]=0; enabled[1]=1; enabled[2]=1;
+                    break;
+                case Constants.ONLY_SCHED_CONTENT:
+                    enabled[0]=0; enabled[1]=0; enabled[2]=1;
+                    break;
+                default:
+                    Log.d("SubmitActivity","viewType error.");
+                    break;
+            }
+            sql = "insert into " + Database.TABLE_ALARM +
+                    "(LABEL, SCHEDTIME, R_ALARMTIME, G_ALARMTIME, R_ENABLED, G_ENABLED, S_ENABLED, VIEWTYPE, READY_H, READY_M, MOVE_H, MOVE_M) values(" +
+                    "'"+ schedLabel.getText() +"',"+
+                    "'"+ schedTime +"',"+
+                    "'"+ readyAlarmTime +"',"+
+                    "'"+ goOutAlarmTime +"',"+
+                    "'"+ enabled[0] +"',"+
+                    "'"+ enabled[1] +"',"+
+                    "'"+ enabled[2] +"',"+
+                    "'"+ viewType +"',"+
+                    "'"+ ready_h +"',"+
+                    "'"+ ready_m +"',"+
+                    "'"+ move_h +"',"+
+                    "'"+ move_m +"',"+
+                    ")";
         }
 
-        Database database = Database.getInstance(context);
+        Database database = Database.getInstance(getApplicationContext());
         database.execSQL(sql);
-        //TODO: id값 다시 조회
+        //db에서 id값 설정해야하기때문에 db먼저 저장한거임,
+        //TODO: db에서 설정된 id값 조회해서 알람 설정해야함!!
         setAlarm(_id,viewType);
+
+        //lateness 테이블에도 insert
 
         Toast.makeText(getApplicationContext(), "알람이 설정되었습니다.", Toast.LENGTH_SHORT).show();
         finish();
@@ -294,81 +260,88 @@ public class SubmitActivity extends AppCompatActivity {
         //update 문 실행. sql 문이 실행될 때 where 조건이 들어가는 키는 _id 값이다.
         //item을 가져와서 알람삭제후 db 수정하고 다시 생성
         int _id = item.getId();
-        cancelAlarm(_id); //알람 삭제
+        cancelAlarm(_id,item.getViewType()); //알람매니저-시스템 알람 삭제
         int viewType = getViewType(); //새로입력된값의 뷰타입 받아오기
 
-        String schedTime = Constants.DateFormat.format(getCalendar(schedTime_h,schedTime_m).getTimeInMillis());
-        String readyAlarmTime = Constants.DateFormat.format(getCalendar(readyTime[0],readyTime[1]).getTimeInMillis());
-        String goOutAlarmTime = Constants.DateFormat.format(getCalendar(goOutTime[0],goOutTime[1]).getTimeInMillis());
+        String schedTime = Constants.dateFormat.format(getCalendar(schedTime_h,schedTime_m).getTimeInMillis());
+        String readyAlarmTime = Constants.dateFormat.format(getCalendar(readyTime[0],readyTime[1]).getTimeInMillis());
+        String goOutAlarmTime = Constants.dateFormat.format(getCalendar(goOutTime[0],goOutTime[1]).getTimeInMillis());
 
         String sql ="";
+        int enabled[] = {0, 0, 0};
         if(item!=null){
             switch(viewType){ // item의 id에 해당되는 쿼리 변경
                 case Constants.INTEGRATED_CONTENT:
-                    sql = "update " + Database.TABLE_ALARM +
-                            "set "+
-                            " LABEL = '" + schedLabel.getText() + "'" +
-                            " ,SCHED_TIME = '" + schedTime + "'" +
-                            " ,READY_ALARMTIME = '" + readyAlarmTime + "'" +
-                            " ,GOOUT_ALARMTIME = '" + goOutAlarmTime + "'" +
-                            " ,READY_ENABLED = '" + 1 +
-                            " ,GOOUT_ENABLED = '" + 1 +
-                            " ,SCHED_ENABLED = '" + 0 +
-                            " ,VIEWTYPE" + viewType +
-                            " where "+
-                            " _id =" + item.getId(); break;
+                    enabled[0]=1; enabled[1]=1; enabled[2]=0;
+                    break;
                 case Constants.ONLY_READY_CONTENT:
-                    sql = "update " + Database.TABLE_ALARM +
-                            "set "+
-                            " LABEL = '" + schedLabel.getText() + "'" +
-                            " ,SCHED_TIME = '" + schedTime + "'" +
-                            " ,READY_ALARMTIME = '" + readyAlarmTime + "'" +
-                            " ,READY_ENABLED = '" + 1 +
-                            " ,GOOUT_ENABLED = '" + 0 +
-                            " ,SCHED_ENABLED = '" + 0 +
-                            " ,VIEWTYPE" + viewType +
-                            " where "+
-                            " _id =" + item.getId(); break;
+                    enabled[0]=1; enabled[1]=0; enabled[2]=0;
+                    break;
                 case Constants.ONLY_GOOUT_CONTENT:
-                    sql = "update " + Database.TABLE_ALARM +
-                            "set "+
-                            " LABEL= '" + schedLabel.getText() + "'" +
-                            " ,SCHED_TIME= '" + schedTime + "'" +
-                            " ,GOOUT_ALARMTIME= '" + goOutAlarmTime + "'" +
-                            " ,READY_ENABLED= '" + 0 +
-                            " ,GOOUT_ENABLED= '" + 1 +
-                            " ,SCHED_ENABLED= '" + 1 +
-                            " ,VIEWTYPE" + viewType +
-                            " where "+
-                            " _id =" + item.getId(); break;
+                    enabled[0]=0; enabled[1]=1; enabled[2]=1;
+                    break;
                 case Constants.ONLY_SCHED_CONTENT:
-                    sql = "update " + Database.TABLE_ALARM +
-                            "set "+
-                            " LABEL= '" + schedLabel.getText() + "'" +
-                            " ,SCHED_TIME= '" + schedTime + "'" +
-                            " ,READY_ENABLED= '" + 0 +
-                            " ,GOOUT_ENABLED= '" + 0 +
-                            " ,SCHED_ENABLED= '" + 1 +
-                            " ,VIEWTYPE" + viewType + //뷰타입 변경 젤중요,,
-                            " where "+
-                            " _id =" + item.getId(); break;
+                    enabled[0]=0; enabled[1]=0; enabled[2]=1;
+                    break;
                 default:
                     Log.d("SubmitActivity","viewType error.");
                     break;
             }
 
-            Database database = Database.getInstance(context);
+            sql = "update " + Database.TABLE_ALARM +
+                    "set "+
+                    " LABEL = '" + schedLabel.getText() + "'" +
+                    " ,SCHED_TIME = '" + schedTime + "'" +
+                    " ,READY_ALARMTIME = '" + readyAlarmTime + "'" +
+                    " ,GOOUT_ALARMTIME = '" + goOutAlarmTime + "'" +
+                    " ,READY_ENABLED = '" + enabled[0] +
+                    " ,GOOUT_ENABLED = '" + enabled[1] +
+                    " ,SCHED_ENABLED = '" + enabled[2] +
+                    " ,VIEWTYPE" + viewType +
+                    " ,READY_H" + ready_h +
+                    " ,READY_M" + ready_m +
+                    " ,MOVE_H" + move_h +
+                    " ,MOVE_M" + move_m +
+                    " where "+
+                    " _id =" + item.getId();
+
+            Database database = Database.getInstance(getApplicationContext());
             database.execSQL(sql);
             setAlarm(_id,viewType);
         }
 
     }
 
-    public void cancelAlarm(int _id){ //삭제는 한일정에 매핑된 알람 한꺼번에!
-        //item alarm 삭제
-        Intent intent = new Intent(context, .class); //TODO
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context,_id,intent,0);
-        alarmManager.cancel(pendingIntent);
+    private void cancelAlarm(int _id, int viewType){ //삭제는 한일정에 매핑된 알람 한꺼번에!
+        //item alarm 삭제, _id로 구분됨!!
+        Intent intent; //TODO
+
+        switch(viewType){
+            case Constants.INTEGRATED_CONTENT:
+                intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+                intent.setAction(AlarmReceiver.READY_ALARM_ALERT_ACTION);
+                alarmManager.cancel(getPendingIntent(intent,_id)); //준비시작 알람 삭제
+
+                intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+                intent.setAction(AlarmReceiver.GOOUT_ALARM_ALERT_ACTION);
+                alarmManager.cancel(getPendingIntent(intent,_id));//출발 알람 삭제
+                break;
+            case Constants.ONLY_READY_CONTENT:
+                intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+                intent.setAction(AlarmReceiver.READY_ALARM_ALERT_ACTION);
+                alarmManager.cancel(getPendingIntent(intent,_id));//준비시작 알람 삭제
+                break;
+            case Constants.ONLY_GOOUT_CONTENT:
+                intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+                intent.setAction(AlarmReceiver.GOOUT_ALARM_ALERT_ACTION);
+                alarmManager.cancel(getPendingIntent(intent,_id));//출발 알람 삭제
+                break;
+            case Constants.ONLY_SCHED_CONTENT:
+                intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+                intent.setAction(AlarmReceiver.SCHED_ALARM_ALERT_ACTION);
+                alarmManager.cancel(getPendingIntent(intent,_id));//일정 알람삭제
+                break;
+        }
     }
 
     public int[] getAlarmTime(int origin_h, int origin_m, int h, int m){

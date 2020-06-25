@@ -2,13 +2,19 @@ package com.yu.alarmproject;
 
 import android.net.Uri;
 
-public class SchedAlarm {
+import java.io.Serializable;
+import java.util.Calendar;
+
+public class SchedAlarm implements Serializable { //직렬화해야함. SchedAlarm -> SubmitActivity 수정시
+    private static final long serialVersionUID = 1L; //직렬화된 클래스의 버전
+    //객체를 전달하는 측과 해당 객체를 수신하는 측에서 사용하는 클래스 파일이 동일한지 체크하는 용도
+
     private int id;
     private String label; //일정 제목
 
-    private String schedTime; //yyyy-MM-dd HH:mm:ss 일정 년,월,일,시
-    private String readyAlarmTime; //준비시작 알람시각
-    private String goOutAlarmTime; //출발 알람-시각
+    private Calendar schedTime; //yyyy-MM-dd HH:mm:ss 일정 년,월,일,시
+    private Calendar readyAlarmTime; //준비시작 알람시각
+    private Calendar goOutAlarmTime; //출발 알람-시각
 
     private boolean readyEnabled; //on/off
     private boolean goOutEnabled;
@@ -23,7 +29,7 @@ public class SchedAlarm {
     //int daysOfWeek; //요일
     //Uri alert; //벨소리
 
-    public SchedAlarm(int id, String label, String schedTime, String readyAlarmTime, String goOutAlarmTime,
+    public SchedAlarm(int id, String label, Calendar schedTime, Calendar readyAlarmTime, Calendar goOutAlarmTime,
                       boolean readyAlarmEnabled, boolean goOutAlarmEnabled, int viewType, int h1, int m1, int h2, int m2) {
         this.id = id;
         this.label = label;
@@ -40,7 +46,7 @@ public class SchedAlarm {
         this.move_m = m2;
     }
 
-    public SchedAlarm(int id, String label, String schedTime, String AlarmTime, boolean enabled, int viewType, int h, int m) {
+    public SchedAlarm(int id, String label, Calendar schedTime, Calendar AlarmTime, boolean enabled, int viewType, int h, int m) {
                 this.id = id;
                 this.label = label;
                 this.schedTime = schedTime;
@@ -61,13 +67,17 @@ public class SchedAlarm {
 
     }
 
-    public SchedAlarm(int id, String label, String schedTime, boolean enabled, int viewType) {
+    public SchedAlarm(int id, String label, Calendar schedTime, boolean enabled, int viewType) {
         this.id = id;
         this.label = label;
         this.schedTime = schedTime;
         this.schedEnabled = enabled;
         this.viewType = viewType; //3
     }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    } //뭐지..? 지울까
 
     public int getId() {
         return id;
@@ -85,31 +95,19 @@ public class SchedAlarm {
         this.label = label;
     }
 
-    public String getSchedTime() {
+    public Calendar getSchedTime() {
         return schedTime;
     }
 
-    public void setSchedTime(String schedTime) {
-        this.schedTime = schedTime;
-    }
-
-    public String getReadyAlarmTime() {
+    public Calendar getReadyAlarmTime() {
         return readyAlarmTime;
     }
 
-    public void setReadyAlarmTime(String readyAlarmTime) {
-        this.readyAlarmTime = readyAlarmTime;
-    }
-
-    public String getGoOutAlarmTime() {
+    public Calendar getGoOutAlarmTime() {
         return goOutAlarmTime;
     }
 
-    public void setGoOutAlarmTime(String goOutAlarmTime) {
-        this.goOutAlarmTime = goOutAlarmTime;
-    }
-
-    public boolean isReadyEnabled() {
+    public boolean isReadyEnabled() { //알람울릴때 이값이 true여야 울리게
         return readyEnabled;
     }
 
@@ -137,39 +135,20 @@ public class SchedAlarm {
         return viewType;
     }
 
-    public void setViewType(int viewType) {
-        this.viewType = viewType;
-    }
-
     public int getReady_h() {
         return ready_h;
-    }
-
-    public void setReady_h(int ready_h) {
-        this.ready_h = ready_h;
     }
 
     public int getReady_m() {
         return ready_m;
     }
 
-    public void setReady_m(int ready_m) {
-        this.ready_m = ready_m;
-    }
-
     public int getMove_h() {
         return move_h;
-    }
-
-    public void setMove_h(int move_h) {
-        this.move_h = move_h;
     }
 
     public int getMove_m() {
         return move_m;
     }
 
-    public void setMove_m(int move_m) {
-        this.move_m = move_m;
-    }
 }
